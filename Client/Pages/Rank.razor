@@ -1,0 +1,58 @@
+﻿@page "/rank"
+@using BlazorSignalRApp.Shared
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime
+@inject UserService UserService
+@using BlazorSignalRApp.Client.Services
+@using Microsoft.AspNetCore.SignalR.Client
+
+<h2>上位者ランキング TOP20</h2>
+
+<div class="table-responsive-sm">
+    <table class="table-responsive-sm">
+        <thead>
+            <tr>
+                <th>ハンドル名</th>
+                <th>累計獲得ポイント数</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in _users.OrderByDescending(u => u.Point).Take(20))
+            {
+                <tr>
+                    <td>@u.Name</td>
+                    <td>@u.Point</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@code
+{
+    private List<User> _users;
+    private HubConnection _hubConnection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = new List<User>();
+        _users = await UserService.GetUsersAsync();
+
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/quizHub"))
+            .Build();
+
+        _hubConnection.On<QuizProgression, Question>("ReceiveProgression", (_p, _q) =>
+        {
+            DataChanged();
+        });
+    }
+
+    private async void DataChanged()
+    {
+        _users = await UserService.GetUsersAsync();
+        StateHasChanged();
+    }
+
+}

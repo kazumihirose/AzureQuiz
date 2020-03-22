@@ -1,0 +1,179 @@
+﻿@using BlazorSignalRApp.Shared
+@using System.IO;
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject IJSRuntime jsRuntime
+@using BlazorSignalRApp.Client.Services
+@inject QuestionService QuestionService
+@using BlazorInputFile;
+
+<div class="modal" tabindex="-1" role="dialog" id="AddQustion">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@CustomHeader</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@_question" OnValidSubmit="@HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="form-group">
+                        <label for="InputQuestion">問題</label>
+                        <InputTextArea id="InputQuestion" @bind-Value="@_question.Body" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="InputOption1">回答選択肢1</label>
+                        <InputText id="InputOption1" @bind-Value="@_question.Option1" class="form-control" />
+                        <BlazorInputFile.InputFile id="inputControl" OnChange="HandleChangeSelected" capture="camera" accept="image/*" />
+                        <input id="uploadButton" type="button" value="Upload file" @onclick="(()=>FileUpload(UploadQuestion.Option1))" class="btn btn-primary" />
+                    </div>
+                    <div class="form-group">
+                        <label for="InputOption2">回答選択肢2</label>
+                        <InputText id="InputOption2" @bind-Value="@_question.Option2" class="form-control" />
+                        <BlazorInputFile.InputFile id="inputControl" OnChange="HandleChangeSelected" capture="camera" accept="image/*" />
+                        <input id="uploadButton" type="button" value="Upload file" @onclick="(()=>FileUpload(UploadQuestion.Option2))" class="btn btn-primary" />
+
+                    </div>
+                    <div class="form-group">
+                        <label for="InputOption3">回答選択肢3</label>
+                        <InputText id="InputOption3" @bind-Value="@_question.Option3" class="form-control" />
+                        <BlazorInputFile.InputFile id="inputControl" OnChange="HandleChangeSelected" capture="camera" accept="image/*" />
+                        <input id="uploadButton" type="button" value="Upload file" @onclick="(()=>FileUpload(UploadQuestion.Option3))" class="btn btn-primary" />
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="InputOption4">回答選択肢4</label>
+                        <InputText id="InputOption4" @bind-Value="@_question.Option4" class="form-control" />
+                        <BlazorInputFile.InputFile id="inputControl" OnChange="HandleChangeSelected" capture="camera" accept="image/*" />
+                        <input id="uploadButton" type="button" value="Upload file" @onclick="(()=>FileUpload(UploadQuestion.Option4))" class="btn btn-primary" />
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="InputOption5">回答選択肢5</label>
+                        <InputText id="InputOption5" @bind-Value="@_question.Option5" class="form-control" />
+                        <BlazorInputFile.InputFile id="inputControl" OnChange="HandleChangeSelected" capture="camera" accept="image/*" />
+                        <input id="uploadButton" type="button" value="Upload file" @onclick="(()=>FileUpload(UploadQuestion.Option5))" class="btn btn-primary" />
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="InputOption6">回答選択肢6</label>
+                        <InputText id="InputOption6" @bind-Value="@_question.Option6" class="form-control" />
+                        <BlazorInputFile.InputFile id="inputControl" OnChange="HandleChangeSelected" capture="camera" accept="image/*" />
+                        <input id="uploadButton" type="button" value="Upload file" @onclick="(()=>FileUpload(UploadQuestion.Option6))" class="btn btn-primary" />
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="IndexOfCorrectOption">正解の番号</label>
+                        <InputNumber id="IndexOfCorrectOption" @bind-Value="@_question.IndexOfCorrectOption" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Comment">解説</label>
+                        <InputTextArea id="Comment" @bind-Value="@_question.Comment" class="form-control" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">登録</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public Question _question { get; set; }
+    [Parameter]
+    public Action _dataChanged { get; set; }
+    [Parameter]
+    public RenderFragment CustomHeader { get; set; }
+
+    private async void HandleValidSubmit()
+    {
+
+        if (_question.QuestionId == 0)
+        {
+            await QuestionService.PostQuestionsAsync(_question);
+        }
+        else
+        {
+            await QuestionService.PutQuestionByIdAsync(_question);
+        }
+        await CloseTaskModal();
+        _dataChanged?.Invoke();
+    }
+
+    private async Task CloseTaskModal()
+    {
+        await jsRuntime.InvokeAsync<object>("CloseModal", "AddQustion");
+    }
+
+    private IFileListEntry _file;
+    private IFileListEntry[] _files;
+    private bool _uploadingFile = false;
+
+    private void HandleChangeSelected(IFileListEntry[] files)
+    {
+        _files = files;
+    }
+
+    private async Task FileUpload(UploadQuestion qn)
+    {
+        _uploadingFile = true;
+        var file = _files.FirstOrDefault();
+        if (file != null)
+        {
+            MemoryStream ms = new MemoryStream();
+            await file.Data.CopyToAsync(ms);
+            Image image = new Image();
+            image.ImageData = Convert.ToBase64String(ms.ToArray());
+            image.ImageFileName = file.Name;
+            Image response = await Http.PostJsonAsync<Image>("api/Images/", image);
+
+            switch (qn)
+            {
+                case UploadQuestion.Option1:
+                    _question.Option1 = response.ImageUrl;
+                    break;
+                case UploadQuestion.Option2:
+                    _question.Option2 = response.ImageUrl;
+                    break;
+                case UploadQuestion.Option3:
+                    _question.Option3 = response.ImageUrl;
+                    break;
+                case UploadQuestion.Option4:
+                    _question.Option4 = response.ImageUrl;
+                    break;
+                case UploadQuestion.Option5:
+                    _question.Option5 = response.ImageUrl;
+                    break;
+                case UploadQuestion.Option6:
+                    _question.Option6 = response.ImageUrl;
+                    break;
+                default:
+                    _question.Option1 = response.ImageUrl;
+                    break;
+            }
+        }
+        _uploadingFile = false;
+
+    }
+
+    public enum UploadQuestion
+    {
+        Option1,
+        Option2,
+        Option3,
+        Option4,
+        Option5,
+        Option6,
+    }
+
+}

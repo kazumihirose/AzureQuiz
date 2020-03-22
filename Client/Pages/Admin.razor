@@ -1,0 +1,112 @@
+﻿@page "/admin"
+@inject NavigationManager NavigationManager
+@using  BlazorSignalRApp.Client.Services
+@using Microsoft.AspNetCore.SignalR.Client
+@using BlazorSignalRApp.Shared
+@using BlazorSignalRApp.Client.Component
+@inject QuestionService QuestionService
+
+<div class="container">
+    <h1 class="text-center">問題一覧</h1>
+    <p class="text-center">削除は特に確認なく削除されます。</p>
+    <button type="button" class="btn btn-secondary" @onclick="(()=>onClickAdd())">追加</button>
+    <hr class="mt-2 mb-5">
+
+    <div class="table-responsive-sm">
+        <table class="table-responsive-sm">
+            <thead>
+                <tr>
+                    <th>出</th>
+                    <th>締</th>
+                    <th>解</th>
+                    <th>待</th>
+                    <th>ID</th>
+                    <th>問題</th>
+                    <th>選1</th>
+                    <th>選2</th>
+                    <th>選3</th>
+                    <th>選4</th>
+                    <th>選5</th>
+                    <th>選6</th>
+                    <th>正解番号</th>
+                    <th>解説</th>
+                    <th>日時</th>
+                    <th>編集</th>
+                    <th>削除</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var q in questions)
+                {
+                <tr>
+                    <td><button type="button" class="btn btn-primary" @onclick="(()=>onQuestionStateChange(q,ContextStateType.ChooseTheAnswer))">出</button></td>
+                    <td><button type="button" class="btn btn-primary" @onclick="(()=>onQuestionStateChange(q,ContextStateType.Closed))">締</button></td>
+                    <td><button type="button" class="btn btn-primary" @onclick="(()=>onQuestionStateChange(q,ContextStateType.ShowCorrectAnswer))">解</button></td>
+                    <td><button type="button" class="btn btn-primary" @onclick="(()=>onQuestionStateChange(q,ContextStateType.PleaseWait))">待</button></td>
+                    <td>@q.QuestionId</td>
+                    <td>@q.Body</td>
+                    <td>@q.Option1</td>
+                    <td>@q.Option2</td>
+                    <td>@q.Option3</td>
+                    <td>@q.Option4</td>
+                    <td>@q.Option5</td>
+                    <td>@q.Option6</td>
+                    <td>@q.IndexOfCorrectOption</td>
+                    <td>@q.Comment</td>
+                    <td>@q.CreateAt</td>
+                    <td>
+                        <button type="button" class="btn btn-warning" @onclick="(()=>onClickEdit(q))">編</button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger" @onclick="(()=>onClickDelete(q))">削</button>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code
+{
+    private List<Question> questions = new List<Question>();
+    private HubConnection _hubConnection;
+    private QuizProgression _progression = new QuizProgression();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        questions = await QuestionService.GetQuestionsAsync();
+        _hubConnection = new HubConnectionBuilder()
+    .WithUrl(NavigationManager.ToAbsoluteUri("/quizHub"))
+    .Build();
+
+        await _hubConnection.StartAsync();
+
+    }
+
+    protected async Task onQuestionStateChange(Question q, ContextStateType c)
+    {
+        _progression.CurrentQuestionID = q.QuestionId;
+        _progression.CurrentState = c;
+        await _hubConnection.SendAsync("SendProgression", _progression, q);
+    }
+
+
+
+    protected async Task onClickEdit(Question q)
+    {
+        NavigationManager.NavigateTo("/editquestion/" + q.QuestionId.ToString());
+    }
+    protected async Task onClickDelete(Question q)
+    {
+        await QuestionService.DeleteQuestionByIdAsync(q);
+        questions = await QuestionService.GetQuestionsAsync();
+        StateHasChanged();
+    }
+    protected async Task onClickAdd()
+    {
+        NavigationManager.NavigateTo("/addquestion/");
+    }
+
+}

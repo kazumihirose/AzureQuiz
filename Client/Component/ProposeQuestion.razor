@@ -1,0 +1,292 @@
+﻿@using BlazorSignalRApp.Shared
+@using BlazorSignalRApp.Client.Services
+@inject UserService UserService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+@if (_p.CurrentState == ContextStateType.PleaseWait)
+{
+    <div class="container">
+        <h1 class="text-center">@_u.Name さんようこそ!!出題までお待ちください</h1>
+        <p class="text-center">@_q.Body</p>
+        <hr class="mt-2 mb-5">
+        <p class="text-center">回答の仕方について</p>
+    </div>
+}
+else if (_p.CurrentState == ContextStateType.ChooseTheAnswer)
+{
+    <div class="container">
+        <h1 class="text-center">問題 @_q.QuestionId</h1>
+        <p class="text-center">@_q.Body</p>
+        <hr class="mt-2 mb-5">
+        <div class="row row-cols-1 row-cols-md-3">
+            @if (!String.IsNullOrEmpty(_q.Option1))
+            {
+                <div class="col mb-4">
+                    <div class="card h-100">
+                        @if (Uri.IsWellFormedUriString(_q.Option1, UriKind.Absolute))
+                        {
+                            <img class="h-auto w-100" src="@_q.Option1" alt="">
+                        }
+                        else
+                        {
+                            <div class="card-body">
+                                <h5 class="card-title">Answer 1</h5>
+                                <p class="card-text">@_q.Option1</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            @if (!String.IsNullOrEmpty(_q.Option2))
+            {
+
+                <div class="col mb-4">
+                    <div class="card h-100">
+                        @if (Uri.IsWellFormedUriString(_q.Option2, UriKind.Absolute))
+                        {
+                            <img class="h-auto w-100" src="@_q.Option2" alt="">
+                        }
+                        else
+                        {
+                            <div class="card-body">
+                                <h5 class="card-title">Answer 2</h5>
+                                <p class="card-text">@_q.Option2</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            @if (!String.IsNullOrEmpty(_q.Option3))
+            {
+                <div class="col mb-4">
+                    <div class="card h-100">
+                        @if (Uri.IsWellFormedUriString(_q.Option3, UriKind.Absolute))
+                        {
+                            <img class="h-auto w-100" src="@_q.Option3" alt="">
+                        }
+                        else
+                        {
+                            <div class="card-body">
+                                <h5 class="card-title">Answer 3</h5>
+                                <p class="card-text">@_q.Option3</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            }
+            @if (!String.IsNullOrEmpty(_q.Option4))
+            {
+                <div class="col mb-4">
+                    <div class="card h-100">
+                        @if (Uri.IsWellFormedUriString(_q.Option4, UriKind.Absolute))
+                        {
+                            <img class="h-auto w-100" src="@_q.Option4" alt="">
+                        }
+                        else
+                        {
+                            <div class="card-body">
+                                <h5 class="card-title">Answer 4</h5>
+                                <p class="card-text">@_q.Option4</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            @if (!String.IsNullOrEmpty(_q.Option5))
+            {
+                <div class="col mb-4">
+                    <div class="card h-100">
+                        @if (Uri.IsWellFormedUriString(_q.Option5, UriKind.Absolute))
+                        {
+                            <img class="h-auto w-100" src="@_q.Option5" alt="">
+                        }
+                        else
+                        {
+                            <div class="card-body">
+                                <h5 class="card-title">Answer 5</h5>
+                                <p class="card-text">@_q.Option5</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            @if (!String.IsNullOrEmpty(_q.Option6))
+            {
+                <div class="col mb-4">
+                    <div class="card h-100">
+                        @if (Uri.IsWellFormedUriString(_q.Option6, UriKind.Absolute))
+                        {
+                            <img class="h-auto w-100" src="@_q.Option6" alt="">
+                        }
+                        else
+                        {
+                            <div class="card-body">
+                                <h5 class="card-title">Answer 6</h5>
+                                <p class="card-text">@_q.Option6</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <EditForm Model="@_u" OnValidSubmit="HandleSubmitAnswer">
+            <div class="form-row align-items-center">
+                <div class="col-auto">
+                    <div class="input-group mb-2">
+                        <input @bind-value="_u.Name" class="form-control" id="inlineFormInputGroup" placeholder="ハンドル名" />
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <InputSelect @bind-Value="_u.IndexOfUserOption" id="inputAnswer" class="form-control">
+                        <option value=0>回答を選択してください</option>
+                        <option value="1">1番</option>
+                        <option value="2">2番</option>
+                        @if (!String.IsNullOrEmpty(_q.Option3))
+                            {
+                            <option value="3">3番</option>
+                            }
+                        /**/
+                        /**/
+                        /**/
+                        /**/
+                        @if (!String.IsNullOrEmpty(_q.Option4))
+                            {
+
+                            <option value="4">4番</option>
+                            }
+                        /**/
+                        /**/
+                        /**/
+                        /**/
+                        @if (!String.IsNullOrEmpty(_q.Option5))
+                            {
+
+                            <option value="5">5番</option>
+                            }
+                        /**/
+                        /**/
+                        /**/
+                        /**/
+                        @if (!String.IsNullOrEmpty(_q.Option6))
+                            {
+
+                            <option value="6">6番</option>
+                            }
+                        /**/
+                        /**/
+                        /**/
+                        /**/
+                    </InputSelect>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary mb-2" type="submit">回答する</button>
+                </div>
+
+            </div>
+        </EditForm>
+    </div>
+}
+else if (_p.CurrentState == ContextStateType.Closed)
+{
+    <div class="container">
+        <h1 class="text-center">回答は締め切りました、進行による答えの発表までお待ちください。</h1>
+        <p class="text-center">@_q.Body</p>
+        <hr class="mt-2 mb-5">
+        @switch (_u.IndexOfUserOption)
+        {
+            case "1":
+                <p class="text-center">@_q.Option1</p>
+                break;
+            case "2":
+                <p class="text-center">@_q.Option2</p>
+                break;
+            case "3":
+                <p class="text-center">@_q.Option3</p>
+                break;
+            case "4":
+                <p class="text-center">@_q.Option4</p>
+                break;
+            case "5":
+                <p class="text-center">@_q.Option5</p>
+                break;
+            case "6":
+                <p class="text-center">@_q.Option6</p>
+                break;
+            default:
+                break;
+        }
+        @if (String.IsNullOrEmpty(_u.IndexOfUserOption) || _u.IndexOfUserOption == "0")
+        {
+            <p class="text-center">あなたは問題をスキップしました。</p>
+        }
+        else
+        {
+            <p class="text-center">あなたは @_u.IndexOfUserOption 番を選択しています。</p>
+        }
+    </div>
+}
+else if (_p.CurrentState == ContextStateType.ShowCorrectAnswer)
+{
+    <div class="container">
+        @if (_u.IndexOfUserOption == _q.IndexOfCorrectOption)
+        {
+            <h1 class="text-center">正解です！！答えは @_q.IndexOfCorrectOption 番でした。</h1>
+
+        }
+        else
+        {
+            <h1 class="text-center">残念！！答えは @_q.IndexOfCorrectOption 番でした。</h1>
+
+        }
+
+        @switch (_q.IndexOfCorrectOption)
+        {
+            case "1":
+                <p class="text-center">@_q.Option1</p>
+                break;
+            case "2":
+                <p class="text-center">@_q.Option2</p>
+                break;
+            case "3":
+                <p class="text-center">@_q.Option3</p>
+                break;
+            case "4":
+                <p class="text-center">@_q.Option4</p>
+                break;
+            case "5":
+                <p class="text-center">@_q.Option5</p>
+                break;
+            case "6":
+                <p class="text-center">@_q.Option6</p>
+                break;
+            default:
+                break;
+        }
+        <h2 class="text-center">解説</h2>
+        <hr classs="mt-2 mb-5">
+        <p class="text-center">@_q.Comment</p>
+    </div>
+}
+@code {
+    [Parameter]
+    public Question _q { get; set; }
+
+    [Parameter]
+    public QuizProgression _p { get; set; }
+    [Parameter]
+    public Action _dataChanged { get; set; }
+    [Parameter]
+    public User _u { get; set; }
+
+    private async Task HandleSubmitAnswer()
+    {
+        if (_u.IndexOfUserOption == _q.IndexOfCorrectOption)
+        {
+            _u.Point++;
+        }
+        await UserService.PutUserByIdAsync(_u);
+        _dataChanged?.Invoke();
+    }
+}

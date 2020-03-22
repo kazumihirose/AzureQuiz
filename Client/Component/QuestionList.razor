@@ -1,0 +1,68 @@
+﻿@using BlazorSignalRApp.Shared
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime
+@using BlazorSignalRApp.Client.Services
+@inject QuestionService QuestionService
+
+<h2>Question List</h2>
+
+<div class="table-responsive-sm">
+    <table class="table-responsive-sm">
+        <thead>
+            <tr>
+                <th>出</th>
+                <th>締</th>
+                <th>解</th>
+                <th>待</th>
+                <th>ID</th>
+                <th>問題</th>
+                <th>選1</th>
+                <th>選2</th>
+                <th>選3</th>
+                <th>選4</th>
+                <th>選5</th>
+                <th>選6</th>
+                <th>正解番号</th>
+                <th>解説</th>
+                <th>日時</th>
+                <th>編集</th>
+                <th>削除</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var q in questions)
+            {
+            <tr>
+                <td><input type="button" class="btn btn-primary" value="出"></td>
+                <td><input type="button" class="btn btn-primary" value="締"></td>
+                <td><input type="button" class="btn btn-primary" value="解"></td>
+                <td><input type="button" class="btn btn-primary" value="待"></td>
+                <td>@q.QuestionId</td>
+                <td>@q.Body</td>
+                <td>@q.Option1</td>
+                <td>@q.Option2</td>
+                <td>@q.Option3</td>
+                <td>@q.Option4</td>
+                <td>@q.Option5</td>
+                <td>@q.Option6</td>
+                <td>@q.IndexOfCorrectOption</td>
+                <td>@q.Comment</td>
+                <td>@q.CreateAt</td>
+                <td><input type="button" class="btn btn-primary" data-toggle="modal" data-target="#AddQustion" value="編"></td>
+                <td><input type="button" class="btn btn-danger" data-toggle="modal" data-target="#confirmDeleteModal" value="削"></td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code
+{
+    private List<Question> questions = new List<Question>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        questions = await QuestionService.GetQuestionsAsync();
+    }
+
+}

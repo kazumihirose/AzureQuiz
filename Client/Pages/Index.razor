@@ -1,0 +1,56 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@using BlazorSignalRApp.Shared
+@using BlazorSignalRApp.Client.Component
+@inject Blazored.LocalStorage.ISyncLocalStorageService localStorage
+@using BlazorSignalRApp.Client.Services
+@inject UserService UserService
+
+<div class="container-fluid">
+    <ProposeQuestion _p="@_progression" _q="@_question" _dataChanged="DataChanged" _u="@_user" />
+</div>
+@code {
+    private Question _question = new Question();
+    private QuizProgression _progression = new QuizProgression();
+    private User _user = new User();
+    private HubConnection _hubConnection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        bool exists = await UserService.CheckUserAsync();
+        if (!exists)
+        {
+            NavigationManager.NavigateTo("/adduser", false);
+        }
+
+        _user = await UserService.GetUserAsync();
+
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/quizHub"))
+            .Build();
+
+        _hubConnection.On<QuizProgression, Question>("ReceiveProgression", (_p, _q) =>
+        {
+            _progression = _p;
+            _question = _q;
+            if (_p.CurrentState == ContextStateType.PleaseWait)
+            {
+                _user.IndexOfUserOption = "0";
+            }
+            StateHasChanged();
+
+        });
+
+        await _hubConnection.StartAsync();
+    }
+
+    private async void DataChanged()
+    {
+        _progression.CurrentState = ContextStateType.Closed;
+        StateHasChanged();
+    }
+
+    public bool IsConnected =>
+    _hubConnection.State == HubConnectionState.Connected;
+}

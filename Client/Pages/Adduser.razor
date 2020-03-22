@@ -1,0 +1,42 @@
+﻿@page "/adduser"
+@inject NavigationManager NavigationManager
+@using  BlazorSignalRApp.Client.Services
+@inject UserService UserService
+@using BlazorSignalRApp.Shared
+
+<div class="container">
+    <h1 class="text-center">ようこそAzureウルトラクイズへ!</h1>
+    <p>初めての方はハンドル名の登録をお願いします</p>
+    <hr class="mt-2 mb-5">
+
+    <EditForm Model="@_user" OnValidSubmit="OnOk">
+        <DataAnnotationsValidator />
+
+        <div class="form-group">
+            <label for="handleName">ハンドル名</label>
+            <InputText @bind-Value="@_user.Name" max class="form-control" id="handleName" maxlength="15" placeholder="ハンドル名" />
+        </div>
+        <div class="error-message">
+            <ValidationSummary></ValidationSummary>
+        </div>
+        <button class="btn btn-primary mb-2">Send</button>
+    </EditForm>
+</div>
+
+
+@code{
+    [Parameter]
+    public User _user { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = new User();
+    }
+
+    async Task OnOk()
+    {
+        await UserService.PostUsersAsync(_user);
+        NavigationManager.NavigateTo("/", false);
+    }
+
+}
